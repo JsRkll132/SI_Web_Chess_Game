@@ -70,3 +70,13 @@ export const make_move_against = async (session_id) => {
         return { error: 'Error making move' };
     }
 };
+
+export const change_difficult = async (session_id,difficult) => {
+    try {
+        const response = await api.post('/changeDifficult', { session_id ,difficult});
+        return response.data;
+    } catch (error) {
+        console.error('Error set difficult game:', error);
+        return { error: 'Error set difficult  game' };
+    }
+};

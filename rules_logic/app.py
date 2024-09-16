@@ -16,7 +16,8 @@ def create_new_session():
     session_id = uuid.uuid4().hex
     sessions[session_id] = {
         'game': ChessStates(),  # Estado inicial del juego
-        'last_activity': datetime.now()  # Marca de tiempo de la última actividad
+        'last_activity': datetime.now() , # Marca de tiempo de la última actividad
+        'difficult' : 'Normal'
     }
     return session_id
 
@@ -43,6 +44,19 @@ def get_board():
     if not session_id or is_session_expired(session_id):
         return jsonify({'error': 'Session expired or not found'}), 403
     return jsonify(sessions[session_id]['game'].getBoard())
+
+@app.route('/chessgame/changeDifficult', methods=['POST'])
+def changeDifficult():
+    session_id = request.json.get('session_id')
+    difficult = request.json.get('difficult')
+    print(session_id)
+    if not session_id or is_session_expired(session_id):
+        return jsonify({'success': False, 'error': 'Session expired or not found'}), 403
+    if difficult in ['Facil','Normal','Dificil'] :
+        sessions[session_id]['difficult'] = difficult 
+        return jsonify({'success': True ,'difficult':difficult }) 
+
+    return jsonify({'success': False, 'message': 'Movimiento ilegal'})
 
 @app.route('/chessgame/move', methods=['POST'])
 def make_move():
@@ -71,7 +85,12 @@ def make_move_against():
     
     current_game = sessions[session_id]['game']
     board_aux = [row[:] for row in current_game.getBoard()]
-    best = ChessEngine.ChessEngine().minmax(board_aux, 4, False, 'b')
+    if sessions[session_id]['difficult'] == 'Facil' :
+        best  = ChessEngine.ChessEngine().random_move(board_aux,'n')
+    if sessions[session_id]['difficult'] ==  'Normal':
+        best = ChessEngine.ChessEngine().best_first_search(board_aux,'n',2)
+    if sessions[session_id]['difficult'] == 'Dificil' :
+        best = ChessEngine.ChessEngine().minmax(board_aux, 4, False, 'b')
     if best:
         current_game.changePieces(best[0][1], best[0][0])
         current_game.changeTurno()

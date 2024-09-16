@@ -1,6 +1,8 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback , useMemo } from 'react';
 import { Chessboard } from 'react-chessboard';
-import { get_board, get_turn, reset_game, make_move, make_move_against, createGame } from '../api/api';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { get_board, get_turn, reset_game, make_move, make_move_against, createGame,change_difficult } from '../api/api';
 
 const mapCustomPieces = {
   "Pb": "wP", "Pn": "bP",
@@ -49,7 +51,9 @@ const ChessGame = () => {
   const [board, setBoard] = useState({});
   const [turn, setTurn] = useState('Blancas');
   const [sessionId, setSessionId] = useState(null);
-  const [loading, setLoading] = useState(true); // Estado de carga
+  const [loading, setLoading] = useState(true);
+  const [difficulty, setDifficulty] = useState('Normal'); // Estado para la dificultad
+  const boardWidth = useMemo(() => 650, []);
 
   const startCreateGame = useCallback(async () => {
     try {
@@ -67,12 +71,11 @@ const ChessGame = () => {
   }, [startCreateGame]);
 
   useEffect(() => {
-    // Ejecutar fetchBoard y fetchTurn solo si sessionId está disponible
     const initializeGame = async () => {
       if (sessionId) {
         await fetchBoard(sessionId);
         await fetchTurn(sessionId);
-        setLoading(false); // Finaliza el estado de carga una vez que todo está listo
+        setLoading(false);
       }
     };
 
@@ -86,7 +89,7 @@ const ChessGame = () => {
         setBoard(convertGameStateToPosition(response));
       } else if (retryCount > 0) {
         console.warn("Board data empty, retrying...");
-        setTimeout(() => fetchBoard(session_id, retryCount - 1), 1000); // Reintenta después de 1 segundo
+        setTimeout(() => fetchBoard(session_id, retryCount - 1), 1000);
       } else {
         console.error("Failed to load board data after multiple attempts");
       }
@@ -106,7 +109,7 @@ const ChessGame = () => {
 
   const make_against_move_ = async () => {
     try {
-      const response_ = await make_move_against(sessionId);
+      const response_ = await make_move_against(sessionId, difficulty); // Considera la dificultad
       if (response_.success) {
         const gameState = response_.board;
         setBoard(convertGameStateToPosition(gameState));
@@ -144,18 +147,51 @@ const ChessGame = () => {
     }
   };
 
+  const changeDifficulty = async () => {
+    try {
+      const difficulties = ['Facil', 'Normal', 'Dificil'];
+      const currentIndex = difficulties.indexOf(difficulty);
+      const nextIndex = (currentIndex + 1) % difficulties.length;
+      setDifficulty(difficulties[nextIndex]);
+      const response = await change_difficult(sessionId,difficulties[nextIndex])
+      if (response.success){
+        console.log("Dificultad cambiada")
+      }
+    } catch (error) {
+      console.error('Error set difficult', error);
+    }
+ 
+  };
+
   async function onDrop(sourceSquare, targetSquare) {
     handleMove(sourceSquare, targetSquare);
     return true;
   }
 
-  // Mostrar un mensaje de carga mientras se prepara el tablero
   if (loading) {
     return <div>Cargando el juego de ajedrez...</div>;
   }
 
-  return <Chessboard position={board} onPieceDrop={onDrop} customArrowColor='rgb(112,110,53)'
-   customLightSquareStyle={{backgroundColor:"#f2f8fc"}} customDarkSquareStyle =  {{ backgroundColor: '#0b6fe0' }}/>;
+  return (
+
+    <div style={{ marginBottom: '120px' }}>
+      <div style={{ marginBottom: '10px' }}>
+        <button onClick={changeDifficulty}>Cambiar Dificultad: {difficulty}</button>
+        <button onClick={resetGame}>Reiniciar Juego</button>
+      </div>
+      <Chessboard
+ 
+        position={board}
+        onPieceDrop={onDrop}
+        //clearPremovesOnRightClick	={false}
+        boardWidth={boardWidth}
+        customArrowColor='rgb(112,110,53)'
+        customLightSquareStyle={{ backgroundColor: "#f2f8fc" }}
+        customDarkSquareStyle={{ backgroundColor: '#0b6fe0' }}
+      />
+    </div>
+
+  );
 };
 
 export default ChessGame;
