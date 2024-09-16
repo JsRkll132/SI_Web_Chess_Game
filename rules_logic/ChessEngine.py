@@ -347,7 +347,7 @@ class ChessEngine () :
 
         # Inicializamos la cola de prioridad (invertimos los valores para obtener el máximo score)
         priority_queue = []
-
+        a_md = max_depth 
         # Generamos movimientos iniciales para el color del jugador
         initial_moves = self.generate_legal_moves(board, player_color)
 
@@ -356,20 +356,35 @@ class ChessEngine () :
             self.changePieces2(move[1], move[0], board_copy)  # Aplicamos el movimiento
             score = evaluate_board_for_best_first(board_copy)  # Evaluamos el tablero resultante
             heapq.heappush(priority_queue, (-score, move, board_copy))  # Añadimos a la cola de prioridad con score negativo para max heap
-
+        #print(priority_queue)
         best_move = random.choice(initial_moves)
         best_score = -inf if player_color == 'n' else inf
+        print("BEST MOVE 1 : ",best_move)
+        # Buscamos el mejor movimiento en función de la evaluación 
+        init_states =  heapq.heappop(priority_queue)
+        init_curr_score = -init_states[0]
 
-        # Buscamos el mejor movimiento en función de la evaluación
         while priority_queue and max_depth > 0:
-            current_neg_score, current_move, current_board = heapq.heappop(priority_queue)
+            if a_md == max_depth : 
+                current_neg_score, current_move, current_board = init_states
+            else : 
+                current_neg_score, current_move, current_board = heapq.heappop(priority_queue)
+            print('*'*40)
+            #print(priority_queue)
             current_score = -current_neg_score  # Convertimos el score de nuevo a positivo
+            print(current_score)
             max_depth -= 1
             
             if (player_color == 'n' and current_score > best_score) or (player_color == 'b' and current_score < best_score):
+                print('best score', best_score)
                 best_score = current_score
                 best_move = current_move
-
+                print('curr score',current_score)
+                print('curr move',current_move)
+                
+                print('best move', best_move)
+                print('success')
+            print("BEST MOVE 2 : ",best_move)
             # Generamos movimientos siguientes para el color contrario
             next_moves = self.generate_legal_moves(current_board, 'b' if player_color == 'n' else 'n')
             for next_move in next_moves:

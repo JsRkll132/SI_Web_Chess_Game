@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback , useMemo } from 'react';
 import { Chessboard } from 'react-chessboard';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import { ChessboardDnDProvider } from 'react-chessboard';
 import { get_board, get_turn, reset_game, make_move, make_move_against, createGame,change_difficult } from '../api/api';
 
 const mapCustomPieces = {
@@ -176,9 +177,11 @@ const ChessGame = () => {
 
     <div style={{ marginBottom: '120px' }}>
       <div style={{ marginBottom: '10px' }}>
-        <button onClick={changeDifficulty}>Cambiar Dificultad: {difficulty}</button>
-        <button onClick={resetGame}>Reiniciar Juego</button>
+      
+        <button  type="button" class="btn btn-warning me-5" onClick={changeDifficulty}>Cambiar Dificultad: {difficulty}</button>
+        <button type="button" class="btn btn-success" onClick={resetGame}>Reiniciar Juego</button>
       </div>
+      <ChessboardDnDProvider>
       <Chessboard
  
         position={board}
@@ -189,6 +192,7 @@ const ChessGame = () => {
         customLightSquareStyle={{ backgroundColor: "#f2f8fc" }}
         customDarkSquareStyle={{ backgroundColor: '#0b6fe0' }}
       />
+      </ChessboardDnDProvider>
     </div>
 
   );
