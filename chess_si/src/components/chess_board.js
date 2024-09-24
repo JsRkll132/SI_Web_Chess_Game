@@ -1,9 +1,11 @@
 import React, { useEffect, useState, useCallback , useMemo } from 'react';
 import { Chessboard } from 'react-chessboard';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
+
 import { ChessboardDnDProvider } from 'react-chessboard';
 import { get_board, get_turn, reset_game, make_move, make_move_against, createGame,change_difficult } from '../api/api';
+import toast, { Toaster } from 'react-hot-toast';
+
+
 
 const mapCustomPieces = {
   "Pb": "wP", "Pn": "bP",
@@ -54,9 +56,14 @@ const ChessGame = () => {
   const [sessionId, setSessionId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [difficulty, setDifficulty] = useState('Normal'); // Estado para la dificultad
-  const boardWidth = useMemo(() => 650, []);
+  const boardWidth = useMemo(() => 600, []);
 
+  const [messagealert,setMessage] = useState("");
   const startCreateGame = useCallback(async () => {
+    if (sessionId!==null){
+      console.log("Ya existe una session actual")
+      return
+    }
     try {
       const response = await createGame();
       if (response.session_id) {
@@ -68,7 +75,10 @@ const ChessGame = () => {
   }, []);
 
   useEffect(() => {
-    startCreateGame();
+    if (sessionId==null){
+      startCreateGame();
+    }
+    
   }, [startCreateGame]);
 
   useEffect(() => {
@@ -124,14 +134,22 @@ const ChessGame = () => {
     try {
       const move = convertMoveToIndices({ from: sourceSquare, to: targetSquare });
       const response = await make_move(sessionId, move);
-      if (response.success) {
+      if (response.success && response.endgame==null) {
         const gameState = response.board;
         setBoard(convertGameStateToPosition(gameState));
         fetchTurn(sessionId);
         await new Promise(resolve => setTimeout(resolve, 1500));
         make_against_move_();
-      } else {
-        alert(response.message);
+      } else if (response.endgame){
+        toast.error(response.message,{duration:2100})
+        //return <Toaster></Toaster>
+        setMessage(response.message)
+        //alert(response.message)
+      }else {
+        toast.error(response.message ?? "Session inactiva o error del servidor",{duration:2100})
+     
+        //return <Toaster></Toaster>
+        //alert(response.message);
       }
     } catch (error) {
       console.error('Error making move:', error);
@@ -174,26 +192,25 @@ const ChessGame = () => {
   }
 
   return (
-
-    <div style={{ marginBottom: '120px' }}>
+    <><Toaster></Toaster><div style={{ marginBottom: '120px' }}>
       <div style={{ marginBottom: '10px' }}>
-      
-        <button  type="button" class="btn btn-warning me-5" onClick={changeDifficulty}>Cambiar Dificultad: {difficulty}</button>
+
+        <button type="button" class="btn btn-warning me-2" onClick={changeDifficulty}>Cambiar Dificultad: {difficulty}</button>
         <button type="button" class="btn btn-success" onClick={resetGame}>Reiniciar Juego</button>
       </div>
+
       <ChessboardDnDProvider>
-      <Chessboard
- 
-        position={board}
-        onPieceDrop={onDrop}
-        //clearPremovesOnRightClick	={false}
-        boardWidth={boardWidth}
-        customArrowColor='rgb(112,110,53)'
-        customLightSquareStyle={{ backgroundColor: "#f2f8fc" }}
-        customDarkSquareStyle={{ backgroundColor: '#0b6fe0' }}
-      />
+        <Chessboard
+
+          position={board}
+          onPieceDrop={onDrop}
+          //clearPremovesOnRightClick	={false}
+          boardWidth={boardWidth}
+          customArrowColor='rgb(112,110,53)'
+          customLightSquareStyle={{ backgroundColor: "#f2f8fc" }}
+          customDarkSquareStyle={{ backgroundColor: '#0b6fe0' }} />
       </ChessboardDnDProvider>
-    </div>
+    </div></>
 
   );
 };

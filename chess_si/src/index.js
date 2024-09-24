@@ -6,18 +6,16 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle';
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from 'react-router-dom';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
-import { ChessboardDnDProvider } from 'react-chessboard';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
 root.render(
   <React.StrictMode>
   
     <BrowserRouter>
-    
+    <div style={{ backgroundColor: '#f9faed', padding: '20px' }}>
+
     <App></App>
-    
+    </div>
     </BrowserRouter>
     
   </React.StrictMode>

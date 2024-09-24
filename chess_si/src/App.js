@@ -1,6 +1,6 @@
 import logo from './logo.svg';
 import './App.css';
-import { Router, Route, RouterProvider } from 'react-router-dom';
+
 import Chess_board from './components/chess_board';
 
 function App() {

@@ -376,12 +376,23 @@ class ChessStates() :
         
         return True
 
-    def king_die(self,board,played) : 
+    def king_die(self, board, played):
+        enemy_die = True
+        king_die = True
         
-        for file in board : 
-            if 'R'+played in file :
-                return False
-        return True
+        # Verificar si el rey del jugador actual está en el tablero
+        for file in board:
+            if 'R' + played in file:
+                king_die = False
+                break
+
+        # Verificar si el rey del oponente está en el tablero
+        for file in board:
+            if 'R' + ('b' if played == 'n' else 'n') in file:
+                enemy_die = False
+                break
+
+        return king_die or enemy_die
 
     
     def setBoard(self,board) : 
