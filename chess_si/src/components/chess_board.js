@@ -4,6 +4,7 @@ import { Chessboard } from 'react-chessboard';
 import { ChessboardDnDProvider } from 'react-chessboard';
 import { get_board, get_turn, reset_game, make_move, make_move_against, createGame,change_difficult } from '../api/api';
 import toast, { Toaster } from 'react-hot-toast';
+import Card from 'react-bootstrap/Card';
 
 
 
@@ -120,10 +121,39 @@ const ChessGame = () => {
 
   const make_against_move_ = async () => {
     try {
+      setTurn("Negras")
       const response_ = await make_move_against(sessionId, difficulty); // Considera la dificultad
-      if (response_.success) {
+      if (response_.success && response_.endgame==null ) {
         const gameState = response_.board;
         setBoard(convertGameStateToPosition(gameState));
+        
+      }else if (response_.endgame){
+        //toast.error(response_.message,{duration:2100})
+        toast((t) => (
+          <span>
+          {response_.message} {'\n Ganan : ' }
+          <b>{response_.winner}</b>
+            <hr></hr>
+            <button class="btn btn-danger" onClick={resetGame}>
+              Reiniciar
+            </button>
+          </span>
+        ),{duration:3000});
+        setMessage(response_.message)
+        //alert(response.message)
+      }else {
+        //toast.error(response_.message ?? "Session inactiva o error del servidor",{duration:2100})
+        toast((t) => (
+          <span>
+            {response_.message} 
+            <br></br><br></br>
+            <button class="btn btn-danger" onClick={resetGame}>
+              Reiniciar
+            </button>
+          </span>
+        ),{duration:3000});
+        //return <Toaster></Toaster>
+        //alert(response.message);
       }
     } catch (error) {
       console.error('Error making move against:', error);
@@ -140,13 +170,27 @@ const ChessGame = () => {
         fetchTurn(sessionId);
         await new Promise(resolve => setTimeout(resolve, 1500));
         make_against_move_();
+        setTurn("Blancas")
       } else if (response.endgame){
-        toast.error(response.message,{duration:2100})
+        //toast.error(response.message,{duration:2100})
+        toast((t) => (
+          <span>
+            {response.message} {'\n Ganan : ' }
+            <b>{response.winner}</b>
+            <hr></hr>
+            <button class="btn btn-danger" onClick={resetGame}>
+              Reiniciar
+            </button>
+          </span>
+        ),{duration:3000});
         //return <Toaster></Toaster>
         setMessage(response.message)
         //alert(response.message)
       }else {
-        toast.error(response.message ?? "Session inactiva o error del servidor",{duration:2100})
+        toast.error(
+          <b>{response.message ?? "Session inactiva o error del servidor"}
+          </b>,
+          {duration:2100})
      
         //return <Toaster></Toaster>
         //alert(response.message);
@@ -161,6 +205,7 @@ const ChessGame = () => {
       await reset_game(sessionId);
       fetchBoard(sessionId);
       fetchTurn(sessionId);
+      window.location.reload()
     } catch (error) {
       console.error('Error resetting game:', error);
     }
@@ -193,23 +238,40 @@ const ChessGame = () => {
 
   return (
     <><Toaster></Toaster><div style={{ marginBottom: '120px' }}>
-      <div style={{ marginBottom: '10px' }}>
 
-        <button type="button" class="btn btn-warning me-2" onClick={changeDifficulty}>Cambiar Dificultad: {difficulty}</button>
-        <button type="button" class="btn btn-success" onClick={resetGame}>Reiniciar Juego</button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' ,marginLeft:'280px'}}>
+      <div>
+        <ChessboardDnDProvider>
+          <Chessboard
+            position={board}
+            onPieceDrop={onDrop}
+            boardWidth={boardWidth}
+            customArrowColor='rgb(112,110,53)'
+            customLightSquareStyle={{ backgroundColor: "#f2f8fc" }}
+            customDarkSquareStyle={{ backgroundColor: '#0b6fe0' }}
+          />
+        </ChessboardDnDProvider>
       </div>
+    
+      <div>
+        <Card style={{ width: '18rem', marginLeft: '20px' }}>
+          <Card.Body>
+            <Card.Title>Turno Actual</Card.Title>
+            
+            <Card.Text>
+            
+                {"Fichas : "}<b>{turn}</b>
+            </Card.Text>
+            <hr></hr>
+            <div style={{ marginBottom: '10px' }}>
 
-      <ChessboardDnDProvider>
-        <Chessboard
-
-          position={board}
-          onPieceDrop={onDrop}
-          //clearPremovesOnRightClick	={false}
-          boardWidth={boardWidth}
-          customArrowColor='rgb(112,110,53)'
-          customLightSquareStyle={{ backgroundColor: "#f2f8fc" }}
-          customDarkSquareStyle={{ backgroundColor: '#0b6fe0' }} />
-      </ChessboardDnDProvider>
+            <button type="button" class="btn btn-warning mb-3" onClick={changeDifficulty}>Cambiar Dificultad: {difficulty}</button>
+            <button type="button" class="btn btn-success" onClick={resetGame}>Reiniciar Juego</button>
+          </div>
+          </Card.Body>
+        </Card>
+      </div>
+    </div>
     </div></>
 
   );

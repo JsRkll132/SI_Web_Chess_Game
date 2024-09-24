@@ -66,3 +66,17 @@ async def change_difficult(session_id, new_difficult):
             print(e)
             await session.rollback()  # Rollback asíncrono
             return False
+
+async def set_winner(session_id, winner):
+    async with async_session() as session:
+        try:
+            game = await session.get(Game, session_id)
+            if game:
+                game.winner = winner
+                await session.commit()  # Commit asíncrono
+                return True
+            return False
+        except Exception as e:
+            print(e)
+            await session.rollback()  # Rollback asíncrono
+            return False

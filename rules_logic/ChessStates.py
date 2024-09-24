@@ -393,7 +393,25 @@ class ChessStates() :
                 break
 
         return king_die or enemy_die
-
+    
+    def king_die_(self, board, played):
+        """
+        Verifica si el rey del jugador actual o el rey del oponente ha sido eliminado del tablero.
+        Si el rey negro no está, retorna 'blancas'.
+        Si el rey blanco no está, retorna 'negras'.
+        """
+        #enemy_die = True  # Variable para verificar si el rey del oponente ha muerto
+        king_die = True   # Variable para verificar si el rey del jugador actual ha muerto
+        
+       
+        for file in board:
+            if 'Rb' in file:  # 'Rb' para blancas o 'Rn' para negras
+                king_die = False
+                break
+        if king_die :
+            return 'Negras'
+        return 'Blancas'
+     
     
     def setBoard(self,board) : 
         self.tablero = board

@@ -3,7 +3,7 @@ import uuid_utils as uuid
 from datetime import datetime, timedelta
 from ChessStates import ChessStates  # Asegurando que ChessStates maneja el estado del juego
 import ChessEngine
-from services.services import make_move_Service, start_game, change_difficult
+from services.services import make_move_Service, start_game, change_difficult,set_winner
 
 sessions = {}
 controllers_ = Blueprint('controllers_', __name__)
@@ -76,7 +76,9 @@ async def make_move():
     print(verifief_game(current_game))
     if verifief_game(current_game):
         message = 'Partida terminada, jaque mate o rey muerto'
-        return jsonify({'success': True, 'board': current_game.getBoard(), 'turn': current_game.getTurno(), 'endgame': True, 'message': message})
+        winner = current_game.king_die_(current_game.getBoard(),'b' if current_game.getTurno() else 'n')
+        await set_winner(session_id=session_id,winner=winner )
+        return jsonify({'success': True, 'board': current_game.getBoard(), 'turn': current_game.getTurno(), 'endgame': True, 'message': message,'winner':winner})
     
     piece = current_game.getBoard()[move['from'][0]][move['from'][1]]
     if current_game.verifiedPiece(piece, new_pos=tuple(move['to']), curr_pos=tuple(move['from']), board=current_game.getBoard()):
@@ -95,6 +97,12 @@ async def make_move_against():
         return jsonify({'error': 'Session expired or not found'}), 403
 
     current_game = sessions[session_id]['game']
+    if verifief_game(current_game):
+        message = 'Partida terminada, jaque mate o rey muerto'
+        winner = current_game.king_die_(current_game.getBoard(),'b' if current_game.getTurno() else 'n')
+        await set_winner(session_id=session_id,winner=winner )
+        return jsonify({'success': True, 'board': current_game.getBoard(), 'turn': current_game.getTurno(), 'endgame': True, 'message': message ,'winner':winner})
+    
     board_aux = [row[:] for row in current_game.getBoard()]
     if sessions[session_id]['difficult'] == 'Facil':
         best = ChessEngine.ChessEngine().random_move(board_aux, 'n')
