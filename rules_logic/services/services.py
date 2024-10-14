@@ -1,9 +1,10 @@
 import os
 import asyncio
+import random
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker, joinedload
-from sqlalchemy import text, and_, func
-from models.models import ChessMove, Game
+from sqlalchemy.orm import sessionmaker, joinedload,load_only
+from sqlalchemy import select, text, and_, func
+from models.models import ChessMove, Game,DecisionTree
 
 # Crear un AsyncEngine en lugar del engine normal
 engine = create_async_engine(os.getenv('DATABASE_URL'), echo=True, future=True)
@@ -80,3 +81,35 @@ async def set_winner(session_id, winner):
             print(e)
             await session.rollback()  # Rollback asíncrono
             return False
+        
+async def get_decision():
+    async with async_session() as session:
+        try:
+         
+            total_records = await session.scalar(select(func.count(DecisionTree.id)))
+            
+            if total_records == 0:
+                return None 
+
+            random_id = random.randint(1, total_records)
+
+            result = await session.execute(
+                select(DecisionTree)
+                .where(DecisionTree.id == random_id)
+                .options(load_only(DecisionTree.movimiento_sugerido, DecisionTree.v1, DecisionTree.v2, DecisionTree.v3, DecisionTree.v4, DecisionTree.v5, DecisionTree.v6, DecisionTree.v7, DecisionTree.v8, DecisionTree.v9, DecisionTree.v10))
+            )
+            decision = result.scalar_one_or_none()
+
+            if decision:
+                variables = [decision.v1, decision.v2, decision.v3, decision.v4, decision.v5, decision.v6, decision.v7, decision.v8, decision.v9, decision.v10]
+                return {
+                    'movimiento_sugerido': decision.movimiento_sugerido,
+                    'variables': variables
+                }
+            else:
+                return None
+
+        except Exception as e:
+            print(f"Ocurrió un error: {e}")
+            await session.rollback()
+            return None

@@ -3,7 +3,7 @@ import uuid_utils as uuid
 from datetime import datetime, timedelta
 from ChessStates import ChessStates  # Asegurando que ChessStates maneja el estado del juego
 import ChessEngine
-from services.services import make_move_Service, start_game, change_difficult,set_winner
+from services.services import make_move_Service, start_game, change_difficult,set_winner,get_decision
 
 sessions = {}
 controllers_ = Blueprint('controllers_', __name__)
@@ -78,6 +78,7 @@ async def make_move():
         message = 'Partida terminada, jaque mate o rey muerto'
         winner = current_game.king_die_(current_game.getBoard(),'b' if current_game.getTurno() else 'n')
         await set_winner(session_id=session_id,winner=winner )
+        
         return jsonify({'success': True, 'board': current_game.getBoard(), 'turn': current_game.getTurno(), 'endgame': True, 'message': message,'winner':winner})
     
     piece = current_game.getBoard()[move['from'][0]][move['from'][1]]
@@ -86,7 +87,8 @@ async def make_move():
         player_type = "Blancas" if current_game.getTurno() else 'Negras'
         await make_move_Service(session_id, piece, str(tuple(move['from'])), str(tuple(move['to'])), current_game.getTurno(), player_type)  # Usar await
         current_game.changeTurno()
-        return jsonify({'success': True, 'board': current_game.getBoard(), 'turn': current_game.getTurno()})
+        validation = await get_decision()
+        return jsonify({'success': True, 'board': current_game.getBoard(), 'turn': current_game.getTurno(),'validation':validation})
 
     return jsonify({'success': False, 'message': 'Movimiento ilegal'})
 
@@ -120,7 +122,8 @@ async def make_move_against():
         player_type = "Blancas" if current_game.getTurno() else 'Negras'
         await make_move_Service(session_id, piece, str(best[0][0]), str(best[0][1]), current_game.getTurno(), player_type)  # Usar await
         current_game.changeTurno()
-        return jsonify({'success': True, 'board': current_game.getBoard(), 'turn': current_game.getTurno()})
+        validation = await get_decision()
+        return jsonify({'success': True, 'board': current_game.getBoard(), 'turn': current_game.getTurno(),'validation':validation})
 
     return jsonify({'success': False, 'message': 'Movimiento ilegal'})
 

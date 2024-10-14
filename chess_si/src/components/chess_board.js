@@ -76,7 +76,7 @@ const ChessGame = () => {
   }, []);
 
   useEffect(() => {
-    if (sessionId==null){
+    if (sessionId=== null){
       startCreateGame();
     }
     
@@ -126,7 +126,7 @@ const ChessGame = () => {
       if (response_.success && response_.endgame==null ) {
         const gameState = response_.board;
         setBoard(convertGameStateToPosition(gameState));
-        
+        setTurn("Blancas")
       }else if (response_.endgame){
         //toast.error(response_.message,{duration:2100})
         toast((t) => (
@@ -170,7 +170,7 @@ const ChessGame = () => {
         fetchTurn(sessionId);
         await new Promise(resolve => setTimeout(resolve, 1500));
         make_against_move_();
-        setTurn("Blancas")
+        
       } else if (response.endgame){
         //toast.error(response.message,{duration:2100})
         toast((t) => (

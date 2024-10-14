@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Integer
+from sqlalchemy import Column, SmallInteger, String, Boolean, DateTime, ForeignKey, Integer
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from datetime import datetime
 import os
@@ -23,6 +23,21 @@ class Piece(Base):
     moves = relationship('ChessMove', back_populates='piece_')  # Relación inversa a ChessMove
 
 # Tabla de juegos (games)
+class DecisionTree(Base):
+    __tablename__ = 'decision_tree'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    v1 = Column(SmallInteger, nullable=False)  # Usar SMALLINT en lugar de TINYINT
+    v2 = Column(SmallInteger, nullable=False)
+    v3 = Column(SmallInteger, nullable=False)
+    v4 = Column(SmallInteger, nullable=False)
+    v5 = Column(SmallInteger, nullable=False)
+    v6 = Column(SmallInteger, nullable=False)
+    v7 = Column(SmallInteger, nullable=False)
+    v8 = Column(SmallInteger, nullable=False)
+    v9 = Column(SmallInteger, nullable=False)
+    v10 = Column(SmallInteger, nullable=False)
+    movimiento_sugerido = Column(String(255), nullable=False)
 class Game(Base):
     __tablename__ = 'games'
     
